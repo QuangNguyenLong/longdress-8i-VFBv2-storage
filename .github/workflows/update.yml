@@ -1,7 +1,12 @@
 name: Update compressed bins
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main         # adjust if your default branch is not "main"
+  schedule:
+    - cron: "0 0 * * 0"   # every Sunday at 00:00 UTC
+  workflow_dispatch:       # still allow manual runs
 
 jobs:
   build-and-compress:
