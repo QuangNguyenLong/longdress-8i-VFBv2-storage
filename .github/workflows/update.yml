@@ -35,12 +35,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # create new branch if not exists
-          git checkout -B filrg-pcc-compressed
+          # create orphan branch (no history, no files)
+          git checkout --orphan filrg-pcc-compressed
+          git rm -rf . >/dev/null 2>&1 || true
 
-          # add only compressed binaries
-          git add compressed/*.bin || true
+          # move bins to repo root
+          mv compressed/*.bin ./
+          rm -rf compressed
 
+          # add only bin files
+          git add *.bin
+
+          git commit -m "Add compressed binaries only"
           # commit if there are changes
           if ! git diff --cached --quiet; then
             git commit -m "Update compressed binaries"
