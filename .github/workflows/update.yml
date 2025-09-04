@@ -7,11 +7,14 @@ on:
 jobs:
   update-compressed:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Set up dependencies
         run: |
@@ -39,11 +42,14 @@ jobs:
           git fetch origin compressed || true
           git checkout -B compressed origin/compressed || git checkout --orphan compressed
           
-      - name: Clean working directory (keep only .git)
+      - name: Clean working directory completely
         run: |
-          # Remove everything except .git directory
-          find . -maxdepth 1 -name ".git" -prune -o -type f -exec rm -f {} \;
-          find . -maxdepth 1 -name ".git" -prune -o -type d -exec rm -rf {} \; 2>/dev/null || true
+          # Remove all files and directories except .git
+          ls -la
+          rm -rf * .* 2>/dev/null || true
+          ls -la
+          # Ensure .git directory still exists
+          ls -la .git
           
       - name: Copy compressed files
         run: |
