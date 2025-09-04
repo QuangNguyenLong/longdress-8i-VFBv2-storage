@@ -12,17 +12,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: true
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake g++ make libzstd-dev
+          sudo apt-get install -y libzstd-dev
 
       - name: Clone and build PCC
         run: |
           git clone https://github.com/filrg/pcc
           cd pcc
-          cmake -S . -B build -D pcc_DEVELOPER_MORE=TRUE
+          cmake -S . -B build -D pcc_DEVELOPER_MODE=TRUE
           cmake --build build -j$(nproc)
 
       - name: Run compression
