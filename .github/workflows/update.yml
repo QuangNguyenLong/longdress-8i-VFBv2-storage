@@ -26,7 +26,6 @@ jobs:
           cd pcc
           cmake -S . -B build -D pcc_DEVELOPER_MODE=TRUE
           cmake --build build -j $(nproc)
-          cd ..
 
       - name: Generate compressed files
         run: |
