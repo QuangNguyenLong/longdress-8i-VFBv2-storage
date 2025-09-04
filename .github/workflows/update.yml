@@ -1,0 +1,64 @@
+name: Weekly Update Compressed Files
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # every Sunday at 00:00 UTC
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  update-compressed:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libzstd-dev -y
+
+      - name: Clone and build PCC
+        run: |
+          git clone https://github.com/filrg/pcc
+          cd pcc
+          cmake -S . -B build -D pcc_DEVELOPER_MODE=TRUE
+          cmake --build build -j $(nproc)
+          cd ..
+
+      - name: Generate compressed files
+        run: |
+          bash run.sh longdress
+
+      - name: Checkout compressed branch
+        run: |
+          git fetch origin compressed || true
+          git checkout -B compressed origin/compressed || git checkout --orphan compressed
+
+      - name: Copy new compressed files
+        run: |
+          cp compressed/*.bin .
+          git add *.bin
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update compressed .bin files" || echo "No changes"
+
+      - name: Push changes
+        run: |
+          git push origin compressed
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: compressed-update
+          base: compressed
+          title: "Weekly update of compressed .bin files"
+          commit-message: "Update compressed .bin files"
+          body: "Automated weekly update from main branch .ply files."
+
