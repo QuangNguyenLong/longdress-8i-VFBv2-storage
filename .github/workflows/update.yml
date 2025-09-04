@@ -30,25 +30,24 @@ jobs:
         run: |
           bash run.sh longdress
 
-      - name: Create branch and commit bins
+      - name: Recreate filrg-pcc-compressed with only bins
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # create orphan branch (no history, no files)
+          # start clean tree from main
           git checkout --orphan filrg-pcc-compressed
+          git reset --hard
           git rm -rf . >/dev/null 2>&1 || true
 
-          # move bins to repo root
-          mv compressed/*.bin ./
+          # move bins to root
+          mv compressed/*.bin ./ || true
           rm -rf compressed
 
-          # add only bin files
-          git add *.bin
-
-          git commit -m "Add compressed binaries only"
-          # commit if there are changes
-          if ! git diff --cached --quiet; then
-            git commit -m "Update compressed binaries"
-            git push origin filrg-pcc-compressed --force
+          # add and commit
+          if ls *.bin 1> /dev/null 2>&1; then
+            git add *.bin
+            git commit -m "Regenerated compressed binaries"
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git filrg-pcc-compressed --force
           fi
+
